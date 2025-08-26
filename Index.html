@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Albion Online — Melhores recursos para comerciar (Bridgewatch → Martlock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14; --panel:#111521; --muted:#8b9bb7; --text:#e6ecff; --accent:#7aa2ff; --good:#30d158; --bad:#ff453a; --chip:#1a2032;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 700px at 70% -10%, #121830 0%, var(--bg) 55%);
+      color: var(--text);
+    }
+    .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px 48px; }
+    header { display:flex; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    h1 { font-size: clamp(20px, 2.6vw, 28px); margin: 8px 0; letter-spacing: 0.2px; }
+    .sub { color: var(--muted); font-size: 13px; }
+
+    .controls { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 10px; background: var(--panel); padding: 14px; border-radius: 16px; box-shadow: 0 10px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); }
+    .controls label { display:flex; flex-direction:column; gap: 6px; font-size: 12px; color: var(--muted); }
+    .controls input, .controls select { background: var(--chip); color: var(--text); border: 1px solid #1f2740; border-radius: 12px; padding: 10px 12px; outline: none; font-size: 14px; }
+    .controls input[type="number"] { appearance: textfield; }
+    .controls .btn { align-self:end; padding: 10px 14px; background: linear-gradient(180deg, #2a355a, #1e2742); border: 1px solid #2a3660; color: #cfe1ff; border-radius: 12px; cursor: pointer; font-weight: 600; }
+    .controls .btn:hover { filter: brightness(1.06); }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding: 6px 10px; border-radius: 999px; background: #152040; border:1px solid #243868; color:#cfe1ff; font-size:12px; }
+
+    .grid { margin-top: 16px; background: var(--panel); border-radius: 16px; overflow: hidden; box-shadow: 0 16px 32px rgba(0,0,0,.35); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { position: sticky; top: 0; background: #121830; padding: 12px; text-align: left; font-weight: 800; font-size: 12px; letter-spacing: .06em; color: #9db1de; text-transform: uppercase; }
+    tbody td { padding: 12px; border-top: 1px solid #1e2740; }
+    tbody tr:hover { background: rgba(122,162,255,0.06); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .good { color: var(--good); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+    .footer { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top: 14px; color: var(--muted); font-size: 12px; }
+    .legend { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .toast { position: fixed; right: 16px; bottom: 16px; background: #152040; color:#cfe1ff; padding: 10px 12px; border-radius: 12px; border:1px solid #2a3660; box-shadow: 0 8px 24px rgba(0,0,0,.35); font-size: 12px; opacity:0; transform: translateY(6px); transition: .35s ease; }
+    .toast.show { opacity:1; transform: translateY(0); }
+
+    .tag { display:inline-block; padding: 4px 8px; border-radius: 999px; border:1px solid #263a71; background:#16224a; color:#bcd3ff; font-size:11px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Marketion — <span class="muted">By SteelDrak</span></h1>
+        <div class="sub">Compara preços em tempo real pela API do Albion Data Project e destaca os melhores recursos de coleta para lucrar no trajeto selecionado.</div>
+      </div>
+      <div class="pill" id="statusPill">Última atualização: <span class="mono" id="lastUpdate">–</span></div>
+    </header>
+
+    <section class="controls" aria-label="Controles">
+      <label>Tirar de (origem)
+        <select id="origin">
+		  <option>Bridgewatch</option>
+          <option>Martlock</option>
+          <option>Thetford</option>
+          <option>Fort Sterling</option>
+          <option>Lymhurst</option>
+          <option>Caerleon</option>
+        </select>
+      </label>
+      <label>Levar para (destino)
+        <select id="destination">
+		  <option>Martlock</option>
+          <option>Bridgewatch</option>
+          <option>Thetford</option>
+          <option>Fort Sterling</option>
+          <option>Lymhurst</option>
+          <option>Caerleon</option>
+        </select>
+      </label>
+      <label>Imposto/Taxa total (%)
+        <input id="feePct" type="number" step="0.1" min="4" value="8.0" />
+      </label>
+      <label>Atualizar (segundos)
+        <input id="refreshSec" type="number" step="1" min="5" value="5" />
+      </label>
+      <label>Filtrar por Tier (T)
+        <select id="tierFilter">
+          <option value="">Todos (T2–T8)</option>
+		  <option value="T2_">T2</option>
+          <option value="T3_">T3</option>
+          <option value="T4_">T4</option>
+          <option value="T5_">T5</option>
+          <option value="T6_">T6</option>
+		  <option value="T7_">T7</option>
+		  <option value="T8_">T8</option>
+        </select>
+      </label>
+      <label>Filtrar por Recurso
+        <select id="resourceFilter">
+          <option value="">Todos</option>
+          <option value="_ORE">Minério (ORE)</option>
+          <option value="_FIBER">Fibra (FIBER)</option>
+          <option value="_WOOD">Madeira (WOOD)</option>
+          <option value="_HIDE">Couro (HIDE)</option>
+          <option value="_ROCK">Pedra (ROCK)</option>
+        </select>
+      </label>
+      <button class="btn" id="refreshBtn">Atualizar agora</button>
+	  <button class="btn" id="swapBtn">↔ Inverter cidades</button>
+    </section>
+
+    <div class="legend" style="margin:10px 0 6px">
+      <span class="tag">Compra instantânea na origem = <span class="mono">sell_price_min</span></span>
+      <span class="tag">Venda instantânea no destino = <span class="mono">buy_price_max</span></span>
+      <span class="tag">Publicar ordem de venda no destino = <span class="mono">sell_price_min (destino)</span></span>
+    </div>
+
+    <section class="grid" aria-label="Resultados">
+      <table id="results">
+        <thead>
+          <tr>
+            <th style="width:28%">Item</th>
+            <th class="num">Comprar @ Origem</th>
+            <th class="num">Vender Inst. @ Destino</th>
+            <th class="num">Lucro Inst. (−taxas)</th>
+            <th class="num">Publicar @ Destino</th>
+            <th class="num">Lucro c/ Anúncio (−taxas)</th>
+            <th>Atualizações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </section>
+
+    <div class="footer">
+      <div>
+        Fonte: <span class="mono">albion-online-data.com</span> • Latência de rede e variações de mercado podem ocorrer.
+      </div>
+      <div>
+        <span class="muted">Dica:</span> clique nos cabeçalhos para ordenar.
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ======================
+    // Configuração dos itens
+    // ======================
+    const RESOURCE_ITEMS = [
+      { id: 'T2_ORE', name: 'T2 Minério (ORE)' },
+      { id: 'T3_ORE', name: 'T3 Minério (ORE)' },
+      { id: 'T4_ORE', name: 'T4 Minério (ORE)' },
+      { id: 'T5_ORE', name: 'T5 Minério (ORE)' },
+      { id: 'T6_ORE', name: 'T6 Minério (ORE)' },
+      { id: 'T7_ORE', name: 'T7 Minério (ORE)' },
+      { id: 'T8_ORE', name: 'T8 Minério (ORE)' },
+      { id: 'T2_HIDE', name: 'T2 Couro (HIDE)' },
+      { id: 'T3_HIDE', name: 'T3 Couro (HIDE)' },
+      { id: 'T4_HIDE', name: 'T4 Couro (HIDE)' },
+      { id: 'T5_HIDE', name: 'T5 Couro (HIDE)' },
+      { id: 'T6_HIDE', name: 'T6 Couro (HIDE)' },
+      { id: 'T7_HIDE', name: 'T7 Couro (HIDE)' },
+      { id: 'T8_HIDE', name: 'T8 Couro (HIDE)' },
+      { id: 'T2_FIBER', name: 'T2 Fibra (FIBER)' },
+      { id: 'T3_FIBER', name: 'T3 Fibra (FIBER)' },
+      { id: 'T4_FIBER', name: 'T4 Fibra (FIBER)' },
+      { id: 'T5_FIBER', name: 'T5 Fibra (FIBER)' },
+      { id: 'T6_FIBER', name: 'T6 Fibra (FIBER)' },
+      { id: 'T7_FIBER', name: 'T7 Fibra (FIBER)' },
+      { id: 'T8_FIBER', name: 'T8 Fibra (FIBER)' },
+      { id: 'T2_WOOD', name: 'T2 Madeira (WOOD)' },
+      { id: 'T3_WOOD', name: 'T3 Madeira (WOOD)' },
+      { id: 'T4_WOOD', name: 'T4 Madeira (WOOD)' },
+      { id: 'T5_WOOD', name: 'T5 Madeira (WOOD)' },
+      { id: 'T6_WOOD', name: 'T6 Madeira (WOOD)' },
+      { id: 'T7_WOOD', name: 'T7 Madeira (WOOD)' },
+      { id: 'T8_WOOD', name: 'T8 Madeira (WOOD)' },
+      { id: 'T2_ROCK', name: 'T2 Pedra (ROCK)' },
+      { id: 'T3_ROCK', name: 'T3 Pedra (ROCK)' },
+      { id: 'T4_ROCK', name: 'T4 Pedra (ROCK)' },
+      { id: 'T5_ROCK', name: 'T5 Pedra (ROCK)' },
+      { id: 'T6_ROCK', name: 'T6 Pedra (ROCK)' },
+      { id: 'T7_ROCK', name: 'T7 Pedra (ROCK)' },
+      { id: 'T8_ROCK', name: 'T8 Pedra (ROCK)' },
+    ];
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function fmt(n) {
+      if (n == null || isNaN(n)) return '—';
+      return Number(n).toLocaleString('pt-BR');
+    }
+    function fmtMoney(n) {
+      if (n == null || isNaN(n)) return '—';
+      return Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    }
+    function ago(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      const sec = Math.max(0, (Date.now() - d.getTime()) / 1000);
+      if (sec < 60) return `${Math.floor(sec)}s`;
+      const m = Math.floor(sec/60); if (m < 60) return `${m}m`;
+      const h = Math.floor(m/60); if (h < 24) return `${h}h`;
+      const days = Math.floor(h/24); return `${days}d`;
+    }
+
+    function showToast(msg) {
+      const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+      setTimeout(()=> el.classList.remove('show'), 2500);
+    }
+
+    const tbody = $('#tbody');
+    const headers = ['item','buyOrigin','sellInstantDest','profitInstant','sellListDest','profitList','stamps'];
+    let sortKey = 'profitInstant';
+    let sortDir = 'desc';
+
+    function renderRows(rows) {
+      const html = rows.map(r => {
+        const clsInstant = r.profitInstant > 0 ? 'good' : (r.profitInstant < 0 ? 'bad' : '');
+        const clsList = r.profitList > 0 ? 'good' : (r.profitList < 0 ? 'bad' : '');
+        return `<tr data-id="${r.id}">
+          <td><div style="font-weight:600">${r.name}</div><div class="muted mono" style="font-size:11px">${r.id}</div></td>
+          <td class="num mono">${fmtMoney(r.buyOrigin)}</td>
+          <td class="num mono">${fmtMoney(r.sellInstantDest)}</td>
+          <td class="num mono ${clsInstant}">${fmtMoney(r.profitInstant)}</td>
+          <td class="num mono">${fmtMoney(r.sellListDest)}</td>
+          <td class="num mono ${clsList}">${fmtMoney(r.profitList)}</td>
+          <td><div class="muted" style="display:flex; gap:10px; flex-wrap:wrap">
+              <span>orig: <span class="mono">${ago(r.tOrigin)}</span></span>
+              <span>dest: <span class="mono">${ago(r.tDest)}</span></span>
+          </div></td>
+        </tr>`;
+      }).join('');
+      tbody.innerHTML = html;
+    }
+
+    function sortRows(rows) {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      return rows.sort((a,b)=>{
+        const av = a[sortKey];
+        const bv = b[sortKey];
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        if (typeof av === 'string') return av.localeCompare(bv) * dir;
+        return (av - bv) * dir;
+      });
+    }
+
+    $$('#results thead th').forEach((th, idx)=>{
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => {
+        const keysMap = ['item','buyOrigin','sellInstantDest','profitInstant','sellListDest','profitList','stamps'];
+        const key = keysMap[idx];
+        if (!key) return;
+        if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc'; else { sortKey = key; sortDir = 'desc'; }
+        rebuild();
+      });
+    });
+
+    const API_BASE = 'https://www.albion-online-data.com/api/v2/stats/Prices';
+
+    function buildUrl(items, locations) {
+      const itemsParam = items.join(',');
+      const locParam = locations.join(',');
+      return `${API_BASE}/${itemsParam}?locations=${encodeURIComponent(locParam)}&qualities=1`;
+    }
+
+    async function fetchPrices(items, origin, dest) {
+      const url = buildUrl(items, [origin, dest]);
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error('Falha ao buscar preços: ' + r.status);
+      const data = await r.json();
+      const byKey = new Map();
+      for (const row of data) {
+        const key = row.item_id + '|' + row.city;
+        byKey.set(key, row);
+      }
+      return (id) => {
+        const o = byKey.get(id + '|' + origin) || {};
+        const d = byKey.get(id + '|' + dest) || {};
+        return { o, d };
+      };
+    }
+
+    function calcProfit(buyOrigin, sellDest, feePct) {
+      if (!isFinite(buyOrigin) || !isFinite(sellDest)) return null;
+      const totalFees = sellDest * (feePct/100);
+      return Math.floor(sellDest - totalFees - buyOrigin);
+    }
+
+    let rowsState = [];
+    let timer = null;
+
+    async function updateOnce() {
+      const origin = $('#origin').value;
+      const destination = $('#destination').value;
+      if (origin === destination) {
+        showToast('Origem e destino iguais — altere um deles.');
+        return;
+      }
+      const feePct = parseFloat($('#feePct').value) || 0;
+
+      // NOVO: filtrar por tier e recurso
+      const tierPrefix = $('#tierFilter').value;
+      const resourceSuffix = $('#resourceFilter').value;
+      const list = RESOURCE_ITEMS.filter(it => {
+        const okTier = !tierPrefix || it.id.startsWith(tierPrefix);
+        const okRes  = !resourceSuffix || it.id.endsWith(resourceSuffix);
+        return okTier && okRes;
+      });
+
+      const itemIds = list.map(it => it.id);
+
+      try {
+        const get = await fetchPrices(itemIds, origin, destination);
+        const rows = list.map(it => {
+          const { o, d } = get(it.id);
+          const buyOrigin = Number(o.sell_price_min) || null;
+          const sellInstantDest = Number(d.buy_price_max) || null;
+          const sellListDest = Number(d.sell_price_min) || null;
+
+          const profitInstant = (buyOrigin!=null && sellInstantDest!=null) ? calcProfit(buyOrigin, sellInstantDest, feePct) : null;
+          const profitList = (buyOrigin!=null && sellListDest!=null) ? calcProfit(buyOrigin, sellListDest, feePct) : null;
+
+          return {
+            id: it.id, name: it.name,
+            buyOrigin, sellInstantDest, profitInstant, sellListDest, profitList,
+            tOrigin: o.sell_price_min_date || o.buy_price_max_date || null,
+            tDest: d.buy_price_max_date || d.sell_price_min_date || null,
+          };
+        });
+        rowsState = rows;
+        rebuild();
+        const now = new Date();
+        $('#lastUpdate').textContent = now.toLocaleTimeString('pt-BR');
+      } catch (e) {
+        console.error(e);
+        showToast('Erro ao atualizar preços. Tente novamente.');
+      }
+    }
+
+    function rebuild() {
+      const sorted = sortRows([...rowsState]);
+      renderRows(sorted);
+    }
+
+    function startAutoRefresh() {
+      const sec = Math.max(5, parseInt($('#refreshSec').value, 10) || 30);
+      if (timer) clearInterval(timer);
+      timer = setInterval(updateOnce, sec * 1000);
+    }
+
+    $('#refreshBtn').addEventListener('click', updateOnce);
+    $('#refreshSec').addEventListener('change', startAutoRefresh);
+    $('#feePct').addEventListener('change', rebuild);
+    $('#origin').addEventListener('change', updateOnce);
+    $('#destination').addEventListener('change', updateOnce);
+    $('#tierFilter').addEventListener('change', updateOnce);
+    $('#resourceFilter').addEventListener('change', updateOnce);
+
+    updateOnce();
+    startAutoRefresh();
+  </script>
+
+  <div id="calcPanel" style="position: fixed; top: 80px; right: 20px; width: 280px; background: var(--panel); padding: 16px; border-radius: 16px; box-shadow: 0 10px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); font-size: 14px;">
+    <h3 style="margin:0 0 12px; font-size:16px; font-weight:700; color:var(--accent)">🧮 Calculadora</h3>
+    <label>Preço de compra
+      <input type="number" id="calcBuy" placeholder="0" style="width:100%; margin-top:4px;">
+    </label>
+    <label>Preço de venda
+      <input type="number" id="calcSell" placeholder="0" style="width:100%; margin-top:4px;">
+    </label>
+    <label>Quantidade
+      <input type="number" id="calcQty" placeholder="1" value="1" style="width:100%; margin-top:4px;">
+    </label>
+    <label>Taxa (%)
+      <input type="number" id="calcFee" placeholder="8" value="8" step="0.1" style="width:100%; margin-top:4px;">
+    </label>
+    <button class="btn" id="calcBtn" style="width:100%; margin-top:10px;">Calcular</button>
+    <div id="calcResult" style="margin-top:12px; font-weight:600; color:var(--good)">Lucro: —</div>
+  </div>
+
+  <script>
+    document.getElementById("swapBtn").addEventListener("click", () => {
+      const origin = document.getElementById("origin");
+      const destination = document.getElementById("destination");
+      const tmp = origin.value;
+      origin.value = destination.value;
+      destination.value = tmp;
+      updateOnce();
+    });
+
+    document.getElementById("calcBtn").addEventListener("click", () => {
+      const buy = parseFloat(document.getElementById("calcBuy").value) || 0;
+      const sell = parseFloat(document.getElementById("calcSell").value) || 0;
+      const qty = parseInt(document.getElementById("calcQty").value, 10) || 1;
+      const fee = parseFloat(document.getElementById("calcFee").value) || 0;
+
+      if (buy <= 0 || sell <= 0) {
+        document.getElementById("calcResult").textContent = "Preencha compra e venda.";
+        document.getElementById("calcResult").style.color = "var(--bad)";
+        return;
+      }
+
+      const totalBuy = buy * qty;
+      const grossSell = sell * qty;
+      const tax = grossSell * (fee/100);
+      const profit = grossSell - tax - totalBuy;
+
+      document.getElementById("calcResult").textContent = "Lucro: " + profit.toLocaleString("pt-BR");
+      document.getElementById("calcResult").style.color = profit >= 0 ? "var(--good)" : "var(--bad)";
+    });
+  </script>
+</body>
+</html>
