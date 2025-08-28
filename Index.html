@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Albion Online — Melhores recursos para comerciar (Bridgewatch → Martlock)</title>
+  <title>Marketion - Gather Trade Route Calculator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -58,6 +58,7 @@
         <div class="sub">Compara preços em tempo real pela API do Albion Data Project e destaca os melhores recursos de coleta para lucrar no trajeto selecionado.</div>
       </div>
       <div class="pill" id="statusPill">Última atualização: <span class="mono" id="lastUpdate">–</span></div>
+	  <button class="btn" id="toggleCalcBtn">🧮 Mostrar/Ocultar Calculadora</button>
     </header>
 
     <section class="controls" aria-label="Controles">
@@ -370,7 +371,7 @@
     startAutoRefresh();
   </script>
 
-  <div id="calcPanel" style="position: fixed; top: 80px; right: 20px; width: 280px; background: var(--panel); padding: 16px; border-radius: 16px; box-shadow: 0 10px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); font-size: 14px;">
+  <div id="calcPanel" style="display:none; position: fixed; top: 80px; right: 20px; width: 280px; background: var(--panel); padding: 16px; border-radius: 16px; box-shadow: 0 10px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); font-size: 14px;">
     <h3 style="margin:0 0 12px; font-size:16px; font-weight:700; color:var(--accent)">🧮 Calculadora</h3>
     <label>Preço de compra
       <input type="number" id="calcBuy" placeholder="0" style="width:100%; margin-top:4px;">
@@ -419,5 +420,11 @@
       document.getElementById("calcResult").style.color = profit >= 0 ? "var(--good)" : "var(--bad)";
     });
   </script>
+  <script>
+  document.getElementById("toggleCalcBtn").addEventListener("click", () => {
+    const panel = document.getElementById("calcPanel");
+    panel.style.display = (panel.style.display === "none" || panel.style.display === "") ? "block" : "none";
+  });
+</script>
 </body>
 </html>
