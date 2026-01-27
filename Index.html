@@ -342,6 +342,7 @@
         rebuild();
         const now = new Date();
         $('#lastUpdate').textContent = now.toLocaleTimeString('pt-BR');
+		  startAutoRefresh();
       } catch (e) {
         console.error(e);
         showToast('Erro ao atualizar preços. Tente novamente.');
